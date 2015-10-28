@@ -3,11 +3,11 @@
 /* global BlobBuilder */
 'use strict';
 
-require('./modernizr'); // does not export window.Modernizr var for some reason
 var vfsDefault = require('../vfs-fonts/roboto.js');
 var PdfPrinter = require('pdfmake');
 var saveAs = require('../libs/fileSaver');
 var vfs = require('./virtual-fs');
+var detectIE = require('./detectIE');
 
 var defaultClientFonts = {
 	Roboto: {
@@ -134,19 +134,10 @@ Document.prototype.getBuffer = function(cb, options) {
   });
 };
 
-console.log('datauri:', Modernizr.datauri);
-Modernizr.on('datauri', function (result) {
-  console.log('datauri: [%s] [%s]', Modernizr.datauri, result);
-  // browsers that do not support datauri cannot open
-  if (!result) {
-    Document.prototype.open = Document.prototype.download;
-  }
-});
-
-Modernizr.on('datauri', function(hasDataUriSupport) {
-  if (!hasDataUriSupport) {
-  }
-});
+if (detectIE()) {
+  // IE does not support open. Could not reliably get this from modernizr
+  Document.prototype.open = Document.prototype.download;
+}
 
 module.exports = function(docDefinition, fonts, vfs) {
 	return new Document(docDefinition, fonts, vfs);
