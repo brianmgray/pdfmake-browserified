@@ -3,6 +3,7 @@
 /* global BlobBuilder */
 'use strict';
 
+require('./modernizr'); // does not export window.Modernizr var for some reason
 var vfsDefault = require('../vfs-fonts/roboto.js');
 var PdfPrinter = require('pdfmake');
 var saveAs = require('../libs/fileSaver');
@@ -62,7 +63,6 @@ Document.prototype.open = function(message) {
 		throw e;
 	}
 };
-
 
 Document.prototype.print = function() {
   this.getDataUrl(function(dataUrl) {
@@ -133,6 +133,20 @@ Document.prototype.getBuffer = function(cb, options) {
     cb(buffer);
   });
 };
+
+console.log('datauri:', Modernizr.datauri);
+Modernizr.on('datauri', function (result) {
+  console.log('datauri: [%s] [%s]', Modernizr.datauri, result);
+  // browsers that do not support datauri cannot open
+  if (!result) {
+    Document.prototype.open = Document.prototype.download;
+  }
+});
+
+Modernizr.on('datauri', function(hasDataUriSupport) {
+  if (!hasDataUriSupport) {
+  }
+});
 
 module.exports = function(docDefinition, fonts, vfs) {
 	return new Document(docDefinition, fonts, vfs);
